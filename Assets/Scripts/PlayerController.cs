@@ -1,23 +1,62 @@
-using System.Collections;
-using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Events;
 
-public class PlayerController : MonoBehaviour
+public class CharacterController : MonoBehaviour
 {
-    public float speed = 5.0f; // You can adjust the speed to your liking
-    private Rigidbody2D rb;
-    private void PlayerMove() {
-        float moveX = Input.GetAxis("Horizontal");
-        float moveY = Input.GetAxis("Vertical");
 
-        rb.velocity = new Vector2(moveX * speed, moveY * speed);
-    }
+    private float horizontal;
+    private float speed = 4f;
+    private float jumpPower = 11f;
+    private bool isFacingRight;
 
-    void Start() {
-        rb = GetComponent<Rigidbody2D>();
+    [SerializeField] private LayerMask groundLayer;
+    [SerializeField] private LayerMask objLayer;
+    [SerializeField] private Transform groundCheck;
+    [SerializeField] private Rigidbody2D rb;
+
+    public bool isInteracting;
+
+    public static CharacterController Instance;
+
+	void Start() {
+        Instance = this;
     }
 
     void Update() {
-        PlayerMove();
+        horizontal = Input.GetAxisRaw("Horizontal");
+
+        if(Input.GetButtonDown("Jump") && isGrounded() || Input.GetKeyDown(KeyCode.W) && isGrounded()){
+            rb.velocity = new Vector2(rb.velocity.x, jumpPower);
+        }
+
+        if( (Input.GetButtonUp("Jump") || Input.GetKeyUp(KeyCode.W)) && rb.velocity.y > 0f) {
+            rb.velocity = new Vector2(rb.velocity.x, rb.velocity.y * 0.5f);
+        }
+
+        if(Input.GetKey(KeyCode.E)) {
+            isInteracting = true;
+        } else if(Input.GetKeyUp(KeyCode.E)) {
+            isInteracting = false;
+        }
+
+        Flip();
+    }
+
+    private bool isGrounded() {
+        return Physics2D.OverlapCircle(groundCheck.position, 0.3f, groundLayer) || 
+                Physics2D.OverlapCircle(groundCheck.position, 0.5f, objLayer);
+    }
+
+    private void FixedUpdate() {
+        rb.velocity = new Vector2(horizontal * speed, rb.velocity.y);
+    }
+
+    private void Flip() {
+        if(isFacingRight && horizontal < 0f || !isFacingRight && horizontal > 0f) {
+            Vector3 localScale = transform.localScale;
+            localScale.x *= -1f;
+            transform.localScale = localScale;
+        }
     }
 }
