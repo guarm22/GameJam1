@@ -7,6 +7,10 @@ TagManager:
   - Wall
   - PressurePlate
   - MovingBlock
+  - Vine
+  - Checkpoint
+  - Water
+  - BouncyPad
   layers:
   - Default
   - TransparentFX

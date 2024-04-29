@@ -6,6 +6,9 @@ public class Button : Signaler
 {
     private GameObject player;
     public bool Toggle = true;
+    public GameObject indicator;
+    public AudioClip buttonOn;
+    public AudioClip buttonOff;
 
     public float buttonSignalDuration = 1.5f;
 
@@ -28,20 +31,34 @@ public class Button : Signaler
                     StartCoroutine(ToggleButton());
                 }
                 else {
-                    Signal = !Signal;
+                    ChangeSignal();
                 }
-
             }
-
         }
-        
-        
+
+        if(Signal) {
+            indicator.GetComponent<SpriteRenderer>().color = Color.green;
+        }
+        else {
+            indicator.GetComponent<SpriteRenderer>().color = Color.red;
+        }
+    }
+
+    private void ChangeSignal() {
+        Signal = !Signal;
+
+        if(Signal) {
+            AudioSource.PlayClipAtPoint(buttonOn, transform.position);
+        }
+        else {
+            AudioSource.PlayClipAtPoint(buttonOff, transform.position);
+        }
     }
 
     public IEnumerator ToggleButton() {
-        Signal = true;
+        ChangeSignal();
         yield return new WaitForSeconds(buttonSignalDuration);
-        Signal = false;
+        ChangeSignal();
     }
 
     private bool isPlayerNear() {

@@ -23,6 +23,7 @@ public class Door : MonoBehaviour
         else if(requiredSignals.Where(signal => signal.GetComponent<Signaler>().Signal == false).ToList().Count == 0) {
             OpenDoor();
         }
+        DrawDebugLines();
     }
 
     private void OpenDoor() {
@@ -36,6 +37,12 @@ public class Door : MonoBehaviour
         if(opened) {
             opened = false;
             gameObject.transform.localPosition = new Vector3(gameObject.transform.localPosition.x, gameObject.transform.localPosition.y - 2f, gameObject.transform.localPosition.z);
+        }
+    }
+
+    private void DrawDebugLines() {
+        foreach(GameObject signal in requiredSignals) {
+            Debug.DrawLine(gameObject.transform.position, signal.transform.position, Color.red);
         }
     }
 }

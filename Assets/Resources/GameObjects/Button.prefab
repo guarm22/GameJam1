@@ -72,7 +72,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: -1
   m_Sprite: {fileID: -2413806693520163455, guid: a86470a33a6bf42c4b3595704624658b, type: 3}
   m_Color: {r: 0.91194963, g: 0.27243772, b: 0.27243772, a: 1}
   m_FlipX: 0
@@ -184,4 +184,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Signal: 0
   Toggle: 0
+  indicator: {fileID: 897835759360441545}
+  buttonOn: {fileID: 8300000, guid: 2bdbd5b77ff403343b59ac335a4097b6, type: 3}
+  buttonOff: {fileID: 8300000, guid: e3704e11cc9d4534ba512eb79032912f, type: 3}
   buttonSignalDuration: 1.5

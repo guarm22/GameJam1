@@ -16,13 +16,13 @@ public class MovingBlock : MonoBehaviour {
         if(collision.gameObject.CompareTag("Player")) {
             //get collision direction
             float direction = collision.transform.position.x - transform.position.x;
-            if(CharacterController.Instance.isInteracting) {
-                Debug.Log("Interacting with block");
-                MoveObject(direction, 1f);
-                return;
-            }
 
             if(Math.Abs(direction) > 1) {
+                if(CharacterController.Instance.isInteracting) {
+                    MoveObject(direction, 1.25f);
+                    return;
+                }
+
                 MoveObject(-direction, 1f);
             }
         }
