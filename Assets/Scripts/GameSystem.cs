@@ -26,13 +26,13 @@ public class GameSystem : MonoBehaviour
 
     // Update is called once per frame
     void Update() {
-        if(Input.GetKeyDown(KeyCode.Q)) {
+        /*if(Input.GetKeyDown(KeyCode.Q)) {
             if(isPaused) {
                 ResumeGame();
             }
             else {
                 PauseGame();
             }
-        }
+        }*/
     }
 }

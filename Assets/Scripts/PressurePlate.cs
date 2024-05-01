@@ -10,13 +10,13 @@ public class PressurePlate : Signaler {
     private void OnTriggerEnter2D(Collider2D collision) {
         if(allowedTriggerTags.Contains(collision.gameObject.tag)) {
             AudioSource.PlayClipAtPoint(triggerSound, transform.position);
-            Signal = true;
+            SetSignal(true);
         }
     }
 
     private void OnTriggerExit2D(Collider2D collision) {
         if(allowedTriggerTags.Contains(collision.gameObject.tag)) {
-            Signal = false;
+            SetSignal(false);
         }
     }
 

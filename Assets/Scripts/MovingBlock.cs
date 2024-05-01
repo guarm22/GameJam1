@@ -9,7 +9,14 @@ public class MovingBlock : MonoBehaviour {
 
     public LayerMask groundLayer;
 
-    public bool Signal = false;
+    [HideInInspector]
+    public Vector3 originalPos;
+
+    public bool resetPosOnSignal = false;
+    public string resetType = "trueToFalse";
+    private bool waitingForSignal = false;
+
+    public List<Signaler> requiredSignals = new List<Signaler>();
 
     private void OnCollisionEnter2D(Collision2D collision) {
         //check if close to wall
@@ -53,7 +60,7 @@ public class MovingBlock : MonoBehaviour {
     }
 
     void Start() {
-        
+        originalPos = transform.position;
     }
 
     void Update() {
@@ -63,6 +70,27 @@ public class MovingBlock : MonoBehaviour {
                 float direction = GameObject.Find("Player").transform.position.x - transform.position.x;
                 if(Math.Abs(direction) > 1) {
                     AttachedMovement();
+                }
+            }
+        }
+
+        if(resetPosOnSignal) {
+            if(requiredSignals.Count == 0 || requiredSignals == null) {
+                return;
+            }
+
+            if(resetType == "trueToFalse") {
+                if(requiredSignals[0].GetSignal() == true) {
+                    waitingForSignal = true;
+                }
+                else if(waitingForSignal && requiredSignals[0].GetSignal() == false) {
+                    transform.position = originalPos;
+                    waitingForSignal = false;
+                }
+            }
+            else if(resetType == "default") {
+                if(requiredSignals[0].GetSignal() == true) {
+                    transform.position = originalPos;
                 }
             }
         }

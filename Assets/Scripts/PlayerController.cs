@@ -7,7 +7,7 @@ public class CharacterController : MonoBehaviour
 {
 
     private float horizontal;
-    private float speed = 4f;
+    private float speed = 5f;
     private float jumpPower = 12f;
     private bool isFacingRight;
 
@@ -20,10 +20,11 @@ public class CharacterController : MonoBehaviour
     [SerializeField] private LayerMask groundLayer;
     [SerializeField] private LayerMask objLayer;
     [SerializeField] private Transform groundCheck;
-    [SerializeField] private Transform leftCheck;
-    [SerializeField] private Transform rightCheck;
     [SerializeField] private Rigidbody2D rb;
     [SerializeField] private Transform headCheck;
+
+    [SerializeField] private Sprite defaultSprite;
+    [SerializeField] private Sprite jumpSprite;
 
     private const float upVelocityThreshold = 0.1f;
 
@@ -56,7 +57,7 @@ public class CharacterController : MonoBehaviour
         }
 
         if(collision.gameObject.tag == "BouncyPad") {
-            Bounce();
+            Bounce(collision.gameObject.GetComponent<BouncyPad>().bounceForce);
         }
 
         if(collision.gameObject.tag == "Checkpoint") {
@@ -79,13 +80,13 @@ public class CharacterController : MonoBehaviour
         }
     }
 
-    private void Bounce() {
+    private void Bounce(float force) {
         //only want player to bounce if they jump into it
         if(rb.velocity.y !< .5 && rb.velocity.y !> -.5) {
             return;
         }
 
-        rb.velocity = new Vector2(rb.velocity.x, 25f);
+        rb.velocity = new Vector2(rb.velocity.x, force);
     }
 
     private bool MovementModifiers() {
@@ -121,7 +122,7 @@ public class CharacterController : MonoBehaviour
                 rb.velocity = new Vector2(rb.velocity.x, -3f);
             } 
 
-            if(Input.GetKey(KeyCode.Space)) {
+            if(Input.GetKeyDown(KeyCode.Space)) {
                 //jump off vine in direction of onLeftSide
                 rb.gravityScale = defaultGravity;
                 rb.velocity = new Vector2(onLeftSide ? -11.5f : 11.5f, 11.5f);
@@ -143,6 +144,12 @@ public class CharacterController : MonoBehaviour
              horizontal = -1f;
         } else if (Input.GetKey(KeyCode.D)) {
             horizontal = 1f;
+        }
+
+        if(!isGrounded() && (rb.velocity.y > upVelocityThreshold)) {
+            GetComponent<SpriteRenderer>().sprite = jumpSprite;
+        } else {
+            GetComponent<SpriteRenderer>().sprite = defaultSprite;
         }
 
         if(!MovementModifiers()) {
@@ -201,10 +208,13 @@ public class CharacterController : MonoBehaviour
     }
 
     private void Flip() {
-        if(isFacingRight && horizontal < 0f || !isFacingRight && horizontal > 0f) {
+        if(horizontal == 0) return;
+
+        if(isFacingRight && horizontal > 0f || !isFacingRight && horizontal < 0f) {
             Vector3 localScale = transform.localScale;
             localScale.x *= -1f;
             transform.localScale = localScale;
+            isFacingRight = !isFacingRight;
         }
     }
 }

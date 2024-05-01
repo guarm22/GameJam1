@@ -6,9 +6,11 @@ public class Button : Signaler
 {
     private GameObject player;
     public bool Toggle = true;
-    public GameObject indicator;
     public AudioClip buttonOn;
     public AudioClip buttonOff;
+
+    public Sprite onSprite;
+    public Sprite offSprite;
 
     public float buttonSignalDuration = 1.5f;
 
@@ -19,7 +21,7 @@ public class Button : Signaler
 
     // Update is called once per frame
     void Update() {
-        if(!Toggle && Signal) {
+        if(!Toggle && GetSignal()) {
             return;
         }
 
@@ -35,22 +37,17 @@ public class Button : Signaler
                 }
             }
         }
-
-        if(Signal) {
-            indicator.GetComponent<SpriteRenderer>().color = Color.green;
-        }
-        else {
-            indicator.GetComponent<SpriteRenderer>().color = Color.red;
-        }
     }
 
     private void ChangeSignal() {
-        Signal = !Signal;
+        SetSignal(!GetSignal());
 
-        if(Signal) {
+        if(GetSignal()) {
+            GetComponent<SpriteRenderer>().sprite = onSprite;
             AudioSource.PlayClipAtPoint(buttonOn, transform.position);
         }
         else {
+            GetComponent<SpriteRenderer>().sprite = offSprite;
             AudioSource.PlayClipAtPoint(buttonOff, transform.position);
         }
     }

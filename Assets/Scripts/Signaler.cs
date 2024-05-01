@@ -4,5 +4,17 @@ using UnityEngine;
 
 public class Signaler : MonoBehaviour {
     [HideInInspector]
-    public bool Signal;    
+    private bool Signal;    
+    private bool InvertSignal;
+
+    public bool GetSignal() {
+        if(InvertSignal) {
+            return !Signal;
+        }
+        return Signal;
+    }
+
+    public void SetSignal(bool signal) {
+        Signal = signal;
+    }
 }

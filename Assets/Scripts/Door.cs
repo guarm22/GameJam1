@@ -17,10 +17,10 @@ public class Door : MonoBehaviour
 
     // Update is called once per frame
     void Update() {
-        if(opened && requiredSignals.Where(signal => signal.GetComponent<Signaler>().Signal == false).ToList().Count > 0) {
+        if(opened && requiredSignals.Where(signal => signal.GetComponent<Signaler>().GetSignal() == false).ToList().Count > 0) {
             CloseDoor();
         }
-        else if(requiredSignals.Where(signal => signal.GetComponent<Signaler>().Signal == false).ToList().Count == 0) {
+        else if(requiredSignals.Where(signal => signal.GetComponent<Signaler>().GetSignal() == false).ToList().Count == 0) {
             OpenDoor();
         }
         DrawDebugLines();
