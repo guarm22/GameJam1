@@ -15,12 +15,15 @@ public class CheckpointSystem : MonoBehaviour {
         player = GameObject.FindGameObjectWithTag("Player");
     }
 
+    public void Resurrection() {
+        if(currentCheckpoint != null) {
+            player.transform.position = currentCheckpoint.transform.position;
+        }
+    }
     
     void Update() {
         if(Input.GetKeyDown(KeyCode.R)) {
-            if(currentCheckpoint != null) {
-                player.transform.position = currentCheckpoint.transform.position;
-            }
+            Resurrection();
         }
     }
 }

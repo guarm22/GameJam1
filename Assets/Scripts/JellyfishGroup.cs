@@ -8,7 +8,7 @@ public class JellyfishGroup : MonoBehaviour
 {
     public List<GameObject> jellyfishes = new List<GameObject>();
     public float floatDuration = 5f;
-
+    public float yMove = 2f;
     private bool isFloating = false;
 
     // Start is called before the first frame update
@@ -48,13 +48,13 @@ public class JellyfishGroup : MonoBehaviour
     private IEnumerator JellyfishMove() {
         isFloating = true;
         foreach(GameObject jellyfish in jellyfishes) {
-            StartCoroutine(SmoothMove(jellyfish,2f, 1f));
+            StartCoroutine(SmoothMove(jellyfish, yMove, 1f));
         }
 
         yield return new WaitForSeconds(floatDuration);
 
         foreach(GameObject jellyfish in jellyfishes) {
-            StartCoroutine(SmoothMove(jellyfish, -2f, 1f));
+            StartCoroutine(SmoothMove(jellyfish, -yMove, 1f));
         }
 
         yield return new WaitForSeconds(1f);

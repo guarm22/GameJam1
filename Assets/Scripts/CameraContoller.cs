@@ -6,7 +6,7 @@ public class CameraContoller : MonoBehaviour
 {
     private Transform player;
     private float smoothSpeed = 0.2f;
-    private Vector3 offset = new Vector3(0, 0.8f, -30);
+    private Vector3 offset = new Vector3(0, 1.2f, -30);
     private Vector3 velocity = Vector3.zero;
     void Start() {
         player = GameObject.Find("Player").transform;

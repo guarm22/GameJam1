@@ -16,57 +16,55 @@ public class MovingBlock : MonoBehaviour {
         if(collision.gameObject.CompareTag("Player")) {
             //get collision direction
             float direction = collision.transform.position.x - transform.position.x;
-
             if(Math.Abs(direction) > 1) {
-                if(CharacterController.Instance.isInteracting) {
-                    MoveObject(direction, 1.25f);
-                    return;
+
+            }
+        }
+    }
+
+    private void AttachedMovement() {
+        //attach the block to the character as long as the interaction button is pressed
+        //we will simulate the attachment by moving the block the same as the player moves
+        //this will make the block follow the player
+
+        //get the direction of the player movement and store it into a variable called 'isPlayerMovingLeft'
+        bool isPlayerMovingLeft = CharacterController.Instance.GetVelocity().x < 0;
+
+        //get the direction of the rock position in relation to the player and store it into a variable called 'isRockLeft'
+        bool isRockLeft = transform.position.x < CharacterController.Instance.transform.position.x;
+
+        //if both are true or both are false, return
+        if(isPlayerMovingLeft == isRockLeft) {
+            CharacterController.Instance.carrying = false;
+            return;
+        }
+
+        GetComponent<Rigidbody2D>().velocity = CharacterController.Instance.GetVelocity() * new Vector2(1.15f, 0);
+        CharacterController.Instance.carrying = true;
+
+        //give the rock some extra velocity towards the player if it is too far away
+        if(distanceFromPlayer() > 1.3f) {
+            GetComponent<Rigidbody2D>().velocity = CharacterController.Instance.GetVelocity() * new Vector2(1.15f, 0) * 1.5f;
+        }
+    }
+
+    private float distanceFromPlayer() {
+        return Vector2.Distance(CharacterController.Instance.transform.position, this.transform.position);
+    }
+
+    void Start() {
+        
+    }
+
+    void Update() {
+        if(distanceFromPlayer() < 1.5f || (CharacterController.Instance.carrying && distanceFromPlayer() < 2.0f)) {
+            if(CharacterController.Instance.isInteracting) {
+
+                float direction = GameObject.Find("Player").transform.position.x - transform.position.x;
+                if(Math.Abs(direction) > 1) {
+                    AttachedMovement();
                 }
-
-                MoveObject(-direction, 1f);
             }
         }
-    }
-
-    private void MoveObject(float direction, float distance) {
-        StartCoroutine(SmoothMovement(direction, distance));
-    }
-
-    private IEnumerator SmoothMovement(float direction, float distance, float duration=0.3f) {
-        float elapsedTime = 0;
-        Vector3 startingPos = transform.position;
-        Vector3 endPos = transform.position + new Vector3(direction * distance, 0f, 0f);
-
-        while(elapsedTime < duration) {
-
-             RaycastHit2D hit = Physics2D.Raycast(transform.position, new Vector2(direction, 0), distance, groundLayer);
-
-            // If the ray hits something on the ground layer, stop movement
-            if (hit.collider != null) {
-                Renderer renderer = gameObject.GetComponent<Renderer>();
-                Vector3 size = renderer.bounds.size;
-                distance = hit.distance - size.x / 2f;
-                StartCoroutine(SmoothMovement(direction, distance));
-                endPos = transform.position;
-                break;
-            }
-
-            transform.position = Vector3.Lerp(startingPos, endPos, (elapsedTime / duration));
-            elapsedTime += Time.deltaTime;
-            yield return null;
-        }
-        transform.position = endPos;
-    }
-
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
     }
 }

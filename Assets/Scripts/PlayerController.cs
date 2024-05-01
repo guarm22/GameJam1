@@ -1,3 +1,4 @@
+using System.Collections;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Events;
@@ -11,11 +12,16 @@ public class CharacterController : MonoBehaviour
     private bool isFacingRight;
 
     private bool onVine;
-    private bool inWater;
+    private bool headInWater;
+    private bool feetInWater;
+    private GameObject water;
+    private GameObject vine;
 
     [SerializeField] private LayerMask groundLayer;
     [SerializeField] private LayerMask objLayer;
     [SerializeField] private Transform groundCheck;
+    [SerializeField] private Transform leftCheck;
+    [SerializeField] private Transform rightCheck;
     [SerializeField] private Rigidbody2D rb;
     [SerializeField] private Transform headCheck;
 
@@ -25,6 +31,7 @@ public class CharacterController : MonoBehaviour
     private float defaultGravity;
     private float defaultSpeed;
     public static CharacterController Instance;
+    public bool carrying = false;
 
 	void Start() {
         Instance = this;
@@ -35,14 +42,16 @@ public class CharacterController : MonoBehaviour
     private void OnTriggerEnter2D(Collider2D collision) {
         if(collision.gameObject.tag == "Vine") {
             onVine = true;
+            vine = collision.gameObject;
         }
 
         if(collision.gameObject.tag == "Water") {
+            water = collision.gameObject;
             if(collision.gameObject.GetComponent<BoxCollider2D>().bounds.Contains(headCheck.position)) {
-                inWater = true;
+                headInWater = true;
             }
             else {
-                inWater = false;
+                headInWater = false;
             }
         }
 
@@ -53,22 +62,25 @@ public class CharacterController : MonoBehaviour
         if(collision.gameObject.tag == "Checkpoint") {
             CheckpointSystem.Instance.currentCheckpoint = collision.gameObject;
         }
+
+        if(collision.gameObject.tag == "DeathZone") {
+            CheckpointSystem.Instance.Resurrection();
+        }
     }
 
     private void OnTriggerExit2D(Collider2D collision) {
         if(collision.gameObject.tag == "Vine") {
             onVine = false;
+            vine = null;
         }
 
         if(collision.gameObject.tag == "Water") {
-            inWater = false;
+            headInWater = false;
         }
     }
 
     private void Bounce() {
         //only want player to bounce if they jump into it
-        Debug.Log(rb.velocity.y);
-        Debug.Log(rb.velocity.y > upVelocityThreshold);
         if(rb.velocity.y !< .5 && rb.velocity.y !> -.5) {
             return;
         }
@@ -77,14 +89,8 @@ public class CharacterController : MonoBehaviour
     }
 
     private bool MovementModifiers() {
-        if(inWater) {
-            speed = 2f;
-            rb.gravityScale = 2f;
-            return true;
-        } 
-
-        if(onVine) {
-            rb.gravityScale = 0f;
+        if(headInWater) {
+            rb.gravityScale = 6f;
             rb.velocity = new Vector2(rb.velocity.x, 0f);
 
             if(Input.GetKey(KeyCode.W)) {
@@ -92,6 +98,37 @@ public class CharacterController : MonoBehaviour
             } else if(Input.GetKey(KeyCode.S)) {
                 rb.velocity = new Vector2(rb.velocity.x, -3f);
             } 
+            return true;
+        } 
+
+        if(!headInWater && feetInWater) {
+            if(Input.GetKey(KeyCode.W)) {
+                rb.velocity = new Vector2(rb.velocity.x, 5f);
+                headInWater = false;
+            }
+        }
+
+        if(onVine) {
+            //print distance from player to vine
+            float distance = transform.position.x - vine.transform.position.x;
+            bool onLeftSide = distance < 0;
+
+            rb.gravityScale = 0f;
+            rb.velocity = new Vector2(rb.velocity.x, 0);
+            if(Input.GetKey(KeyCode.W)) {
+                rb.velocity = new Vector2(rb.velocity.x, 3f);
+            } else if(Input.GetKey(KeyCode.S)) {
+                rb.velocity = new Vector2(rb.velocity.x, -3f);
+            } 
+
+            if(Input.GetKey(KeyCode.Space)) {
+                //jump off vine in direction of onLeftSide
+                rb.gravityScale = defaultGravity;
+                rb.velocity = new Vector2(onLeftSide ? -11.5f : 11.5f, 11.5f);
+                onVine = false;
+                vine = null;
+            }
+
             return true;   
         } 
         return false;
@@ -100,18 +137,24 @@ public class CharacterController : MonoBehaviour
     void Update() {
         if(GameSystem.Instance.isPaused) return;
 
-        horizontal = Input.GetAxisRaw("Horizontal");
+        //horizontal = Input.GetAxisRaw("Horizontal");
+        horizontal = 0f;
+        if (Input.GetKey(KeyCode.A)) {
+             horizontal = -1f;
+        } else if (Input.GetKey(KeyCode.D)) {
+            horizontal = 1f;
+        }
 
         if(!MovementModifiers()) {
             speed = defaultSpeed;
             rb.gravityScale = defaultGravity;
         }
 
-        if(Input.GetButtonDown("Jump") && isGrounded() || Input.GetKeyDown(KeyCode.W) && isGrounded()){
+        if(Input.GetButtonDown("Jump") && isGrounded() || Input.GetKeyDown(KeyCode.W) && isGrounded() && !carrying){
             rb.velocity = new Vector2(rb.velocity.x, jumpPower);
         }
 
-        if( (Input.GetButtonUp("Jump") || Input.GetKeyUp(KeyCode.W)) && rb.velocity.y > 0f) {
+        if( (Input.GetButtonUp("Jump") || Input.GetKeyUp(KeyCode.W)) && rb.velocity.y > 0f && !carrying) {
             rb.velocity = new Vector2(rb.velocity.x, rb.velocity.y * 0.5f);
         }
 
@@ -119,9 +162,24 @@ public class CharacterController : MonoBehaviour
             isInteracting = true;
         } else if(Input.GetKeyUp(KeyCode.E)) {
             isInteracting = false;
+            carrying = false;
         }
 
+        if(water!=null) {
+            if(water.GetComponent<BoxCollider2D>().bounds.Contains(groundCheck.position)) {
+                feetInWater = true;
+            }
+            else {
+                feetInWater = false;
+                water = null;
+            }   
+        }
+        
         Flip();
+    }
+
+    public Vector2 GetVelocity() {
+        return rb.velocity;
     }
 
     private bool isGrounded() {
@@ -130,7 +188,16 @@ public class CharacterController : MonoBehaviour
     }
 
     private void FixedUpdate() {
-        rb.velocity = new Vector2(horizontal * speed, rb.velocity.y);
+        if (horizontal == 0 && !isGrounded() && !onVine) {
+            // If no horizontal input, slow down the player
+            rb.velocity = new Vector2(rb.velocity.x * 0.99f, rb.velocity.y);
+        }
+        else if (horizontal == 0) {
+            rb.velocity = new Vector2(rb.velocity.x * 0.3f, rb.velocity.y);
+        } else {
+            // If there is horizontal input, move the player
+            rb.velocity = new Vector2(horizontal * speed, rb.velocity.y);
+        }
     }
 
     private void Flip() {
